@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static int ROW_COUNT = 6, COLUMN_COUNT = 6;
+static int ROW_COUNT = 6, COLUMN_COUNT = 7;
 bool gameOver = false;
 int turn = 0;
 int column;
@@ -13,7 +13,7 @@ vector<vector<int>> createBoard() {
 }
 
 bool isValidColumn(int column) {
-    if (column >= 0 and column <= 5) {
+    if (column >= 0 and column <= COLUMN_COUNT - 1) {
         return true;
     } else {
         return false;
@@ -97,7 +97,7 @@ int main() {
     printBoard(board);
     while (!gameOver) {
         if (turn == 0) {
-            cout << "Player 1, please choose a column (1-6): ";
+            cout << "Player 1, please choose a column (1-7): ";
             cin >> column;
             column--;
             if (!isValidColumn(column)) {
@@ -116,7 +116,7 @@ int main() {
                 continue;
             }
         } else {
-            cout << "Player 2, please choose a column (1-6): ";
+            cout << "Player 2, please choose a column (1-7): ";
             cin >> column;
             column--;
             if (!isValidColumn(column)) {
