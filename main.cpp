@@ -142,6 +142,7 @@ int evaluate_window(vector<int> window, int piece) {
     if (countOppPiece == 3 and countEmpty == 1)
         score -= 4;
 
+    cout << "score is: " << score << endl;
     return score;
 }
 

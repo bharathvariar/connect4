@@ -1,0 +1,1 @@
+   cout << "score is: " << score << endl;

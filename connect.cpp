@@ -4,11 +4,6 @@ using namespace std;
 
 static int ROW_COUNT = 6, COLUMN_COUNT = 7, PLAYER1 = 0, PLAYER2 = 1, AI = 1, PLAYER1_PIECE = 1, PLAYER2_PIECE = 2, AI_PIECE = 2, EMPTY = 0, WINDOW_LENGTH = 4;
 
-bool gameOver = false;
-int column;
-// int row;
-int numPlayers;
-
 vector<vector<int>> createBoard() {
     vector<vector<int>> board = vector<vector<int>>(ROW_COUNT, vector<int>(COLUMN_COUNT, 0));
     return board;
@@ -133,7 +128,7 @@ int evaluateWindow(vector<int> window, int piece) {
 
     if (countOppPiece == 3 and countEmpty == 1)
         score -= 4;
-
+    cout << "score is: " << score << endl;
     return score;
 }
 
@@ -307,25 +302,31 @@ int pickBestMove(vector<vector<int>> board, int piece) {
     return bestCol;
 }
 
-vector<vector<int>> board = createBoard();
 int main() {
-
+beginGame:
     cout << "Welcome! Choose your Mode of Play:\nPress 1 for 1 Player\nPress 2 for 2 Player" << endl;
+    int numPlayers;
     cin >> numPlayers;
-
+    vector<vector<int>> board = createBoard();
+    bool gameOver = false;
     if (numPlayers == 1) {
         srand(time(0));
         int turn = rand() % 2; // Setting Random turn between 0 and 1
-        printBoard(board);
         int alpha = numeric_limits<int>::min();
         int beta = numeric_limits<int>::max();
         int column = 0;
         int minimax_score = 0;
+        cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
+        printBoard(board);
         while (!gameOver) {
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
                 cin >> column;
                 column--;
+                if (column == -1) {
+                    gameOver = true;
+                    continue;
+                }
                 if (!isValidColumn(column)) {
                     cout << "Not a valid column, choose again!" << endl;
                     continue;
@@ -362,12 +363,18 @@ int main() {
         }
     } else if (numPlayers == 2) {
         int turn = 0;
+        int column = 0;
+        cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
         printBoard(board);
         while (!gameOver) {
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
                 cin >> column;
                 column--;
+                if (column == -1) {
+                    gameOver = true;
+                    continue;
+                }
                 if (!isValidColumn(column)) {
                     cout << "Not a valid column, choose again!" << endl;
                     continue;
@@ -387,6 +394,10 @@ int main() {
                 cout << "Player 2, please choose a column (1-7): ";
                 cin >> column;
                 column--;
+                if (column == -1) {
+                    gameOver = true;
+                    continue;
+                }
                 if (!isValidColumn(column)) {
                     cout << "Not a valid column, choose again!" << endl;
                     continue;
@@ -407,6 +418,24 @@ int main() {
             turn %= 2;
             printBoard(board);
         }
-        return 0;
+    } else {
+        cout << "Please enter valid number of players!" << endl;
+        goto beginGame;
+    }
+
+    if (gameOver) {
+        while (true) {
+            char c;
+            cout << "Do you want to play again?\nPress Y or N" << endl;
+            cin >> c;
+            if (c == 'Y' or c == 'y') {
+                goto beginGame;
+            } else if (c == 'N' or c == 'n') {
+                cout << "Thank you for playing!" << endl;
+                break;
+            } else {
+                cout << "Please enter a valid character" << endl;
+            }
+        }
     }
 }
