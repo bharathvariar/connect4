@@ -30,13 +30,27 @@ bool isValidColumn(int column) {
 }
 
 void printBoard(vector<vector<int>> board) {
+    cout << " 1 2 3 4 5 6 7 " << endl;
     for (int row = ROW_COUNT - 1; row >= 0; row--) {
         cout << "|";
         for (int col = 0; col < COLUMN_COUNT; col++) {
             if (col != COLUMN_COUNT - 1) {
-                cout << board[row][col] << " ";
+                if (board[row][col] == 1) {
+                    cout << "X|";
+                } else if (board[row][col] == 2) {
+                    cout << "O|";
+                } else if (board[row][col] == 0) {
+                    cout << " |";
+                }
             } else {
-                cout << board[row][col];
+                if (board[row][col] == 1) {
+                    cout << "X";
+                } else if (board[row][col] == 2) {
+                    cout << "O";
+                } else if (board[row][col] == 0) {
+                    cout << " ";
+                }
+                // cout << board[row][col];
             }
         }
         cout << "|" << endl;
@@ -305,12 +319,14 @@ beginGame:
         int column = 0;
         int minimax_score = 0;
         int level;
-        chooseLevel:
-        cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n";
-        cin >> level;
-        if (level < 1 or level > 4) {
-            cout << "Please choose a valid level" << endl;
-            goto chooseLevel;
+        while (true) {
+            cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n";
+            cin >> level;
+            if (level < 1 or level > 4) {
+                cout << "Please choose a valid level" << endl;
+            } else {
+                break;
+            }
         }
         int turn = rand() % 2; // Setting Random turn between 0 and 1
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
@@ -341,8 +357,15 @@ beginGame:
                 }
             } else if (turn == AI) {
 
-                cout << "AI Thinking..." << endl;
-                Sleep(1000);
+                cout << "AI Thinking";
+                Sleep(250);
+                cout << ".";
+                Sleep(250);
+                cout << ".";
+                Sleep(250);
+                cout << ".";
+                Sleep(250);
+                cout << endl;
                 int col = minimax(board, level, alpha, beta, true)[0];
                 minimax_score = minimax(board, level, alpha, beta, true)[1];
                 if (isValidLocation(board, col)) {
@@ -350,7 +373,7 @@ beginGame:
                     insertPiece(board, row, col, AI_PIECE);
                     if (isGameOver(board, AI_PIECE)) {
                         gameOver = true;
-                        cout << "Sorry, You Lose, Better Luck Next Time" << endl;
+                        cout << "Sorry, You Lose! Better Luck Next Time" << endl;
                     }
                 }
             }
