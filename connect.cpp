@@ -9,12 +9,24 @@ vector<vector<int>> createBoard() {
     return board;
 }
 
+void insertPiece(vector<vector<int>> &board, int row, int column, int piece) {
+    board[row][column] = piece;
+    return;
+}
+
+bool isValidLocation(vector<vector<int>> board, int column) {
+    if (board[ROW_COUNT - 1][column] == 0) {
+        return true;
+    }
+
+    return false;
+}
+
 bool isValidColumn(int column) {
     if (column >= 0 and column <= COLUMN_COUNT - 1) {
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 void printBoard(vector<vector<int>> board) {
@@ -28,14 +40,6 @@ void printBoard(vector<vector<int>> board) {
             }
         }
         cout << "|" << endl;
-    }
-}
-
-bool isValidLocation(vector<vector<int>> board, int column) {
-    if (board[ROW_COUNT - 1][column] == 0) {
-        return true;
-    } else {
-        return false;
     }
 }
 
@@ -55,11 +59,6 @@ int getNextRow(vector<vector<int>> board, int column) {
             return row;
         }
     }
-}
-
-void insertPiece(vector<vector<int>> &board, int row, int column, int piece) {
-    board[row][column] = piece;
-    return;
 }
 
 bool isGameOver(vector<vector<int>> board, int piece) {
@@ -99,6 +98,11 @@ bool isGameOver(vector<vector<int>> board, int piece) {
     return false;
 }
 
+bool isTerminalNode(vector<vector<int>> board) {
+    vector<int> validLocations = getValidLocations(board);
+    return isGameOver(board, PLAYER1_PIECE) or isGameOver(board, AI_PIECE) or validLocations.size() == 0;
+}
+
 int evaluateWindow(vector<int> window, int piece) {
     int score = 0;
     int opp_piece = PLAYER1_PIECE;
@@ -112,7 +116,6 @@ int evaluateWindow(vector<int> window, int piece) {
         else if (window[i] == EMPTY)
             countEmpty++;
     }
-
     if (countPiece == 4)
         score += 100;
     else if (countPiece == 3 and countEmpty == 1)
@@ -128,23 +131,21 @@ int evaluateWindow(vector<int> window, int piece) {
 
     if (countOppPiece == 3 and countEmpty == 1)
         score -= 4;
-    cout << "score is: " << score << endl;
     return score;
 }
 
 int scorePosition(vector<vector<int>> board, int piece) {
     int score = 0;
-    int center_count = 3;
-    vector<int> center_array;
+    int center_count = 0;
+    vector<int> center_array(6);
     for (int i = 0; i < ROW_COUNT; i++) {
         center_array[i] = board[i][COLUMN_COUNT / 2];
     }
+
     for (int i = 0; i < center_array.size(); i++) {
         if (center_array[i] == piece)
             center_count++;
     }
-    score += center_count * 3;
-
     // Score horizontal
     vector<int> row_array;
     vector<int> window1;
@@ -156,25 +157,26 @@ int scorePosition(vector<vector<int>> board, int piece) {
                 window1.push_back(row_array[c + j]);
             }
             score += evaluateWindow(window1, piece);
+            window1.clear();
         }
     }
 
-    // Score Vertical
     vector<int> col_array;
     vector<int> window2;
     for (int i = 0; i < COLUMN_COUNT; i++) {
         col_array.clear(); // Initialising col_array
         for (int j = 0; j < ROW_COUNT; j++) {
-            col_array.push_back(board[i][j]);
+            col_array.push_back(board[j][i]);
         }
         for (int r = 0; r < ROW_COUNT - 3; r++) {
             for (int j = 0; j < WINDOW_LENGTH; j++) {
                 window2.push_back(col_array[r + j]);
             }
             score += evaluateWindow(window2, piece);
+            window2.clear();
         }
     }
-
+    // Score Vertical
     // Scoring +vely sloped diagonal
     vector<int> window3;
     for (int r = 0; r < ROW_COUNT - 3; r++) {
@@ -184,6 +186,7 @@ int scorePosition(vector<vector<int>> board, int piece) {
                 window3.push_back(board[r + i][c + i]);
             }
             score += evaluateWindow(window3, piece);
+            window3.clear();
         }
     }
 
@@ -196,97 +199,17 @@ int scorePosition(vector<vector<int>> board, int piece) {
                 window4.push_back(board[r + 3 - i][c + i]);
             }
             score += evaluateWindow(window4, piece);
+            window4.clear();
         }
     }
-
     return score;
 }
 
-bool isTerminalNode(vector<vector<int>> board) {
-    vector<int> validLocations = getValidLocations(board);
-    return isGameOver(board, PLAYER1) or isGameOver(board, AI) or validLocations.size() == 0;
-}
-
-vector<int> minimax(vector<vector<int>> board, int depth, int alpha, int beta, int maximizingPlayer) {
-    vector<int> valid_locations = getValidLocations(board);
-    bool isTerminal;
-    isTerminal = isTerminalNode(board);
-    if (depth == 0 or isTerminal) {
-        if (isTerminal) {
-
-            vector<int> v1 = {NULL, 100000000};
-            vector<int> v2 = {NULL, -100000000};
-            vector<int> v3 = {NULL, 0};
-
-            if (isGameOver(board, AI)) {
-                return v1;
-            } else if (isGameOver(board, PLAYER1)) {
-                return v2;
-            } else {
-                return v3;
-            }
-        } else {
-            vector<int> temp = {NULL, scorePosition(board, AI)};
-            return temp;
-        }
-    }
-    if (maximizingPlayer) {
-
-        int value1 = numeric_limits<int>::min();
-        int row1 = 0;
-        int newScore = 0;
-        srand(time(0));
-        int column1 = rand() % valid_locations.size();
-        vector<vector<int>> tempBoard;
-        for (int i = 0; i < valid_locations.size(); i++) {
-            row1 = getNextRow(board, i);
-            tempBoard = board;
-            insertPiece(tempBoard, row1, i, AI);
-            newScore = minimax(tempBoard, depth - 1, alpha, beta, false)[1];
-            if (newScore > value1) {
-                value1 = newScore;
-                column1 = i;
-            }
-            int alpha = max(alpha, value1);
-            if (alpha >= beta)
-                break;
-        }
-        vector<int> v = {column1, value1};
-        return v;
-
-    } else {
-        int value2 = numeric_limits<int>::max();
-        int row2 = 0;
-        srand(time(0));
-        int column2 = rand() % valid_locations.size();
-        int newScore = 0;
-        vector<vector<int>> tempBoard2;
-        for (int i = 0; i < valid_locations.size(); i++) {
-            row2 = getNextRow(board, i);
-            tempBoard2 = board;
-            insertPiece(tempBoard2, row2, i, PLAYER1);
-            newScore = minimax(tempBoard2, depth - 1, alpha, beta, true)[1];
-            if (newScore < value2) {
-                value2 = newScore;
-                column2 = i;
-            }
-            int beta = min(beta, value2);
-            if (alpha >= beta)
-                break;
-        }
-
-        vector<int> v = {column2, value2};
-        return v;
-    }
-}
-
 int pickBestMove(vector<vector<int>> board, int piece) {
-    vector<int> validLocations;
-    validLocations = getValidLocations(board);
+    vector<int> validLocations = getValidLocations(board);
     int score = 0;
     int row = 0;
     int bestScore = -100000;
-    srand(time(0));
     int bestCol = rand() % validLocations.size();
     vector<vector<int>> tempBoard;
     for (int i = 0; i < validLocations.size(); i++) {
@@ -302,20 +225,94 @@ int pickBestMove(vector<vector<int>> board, int piece) {
     return bestCol;
 }
 
+vector<int> minimax(vector<vector<int>> &board, int depth, int alpha, int beta, int maximizingPlayer) {
+    vector<int> validLoctions = getValidLocations(board);
+    bool isTerminal = isTerminalNode(board);
+    if ((depth == 0) or (isTerminal)) {
+        vector<int> tup(2);
+        if (isTerminal) {
+            if (isGameOver(board, AI_PIECE)) {
+                tup = {NULL,
+                       1000000000};
+            } else if (isGameOver(board, PLAYER1_PIECE)) {
+                tup = {NULL,
+                       -1000000000};
+            } else {
+                tup = {NULL, 0};
+            }
+        } else {
+            tup = {NULL, scorePosition(board, AI_PIECE)};
+        }
+        return tup;
+    }
+
+    if (maximizingPlayer) {
+        int row, column, value, newScore;
+        vector<int> tup;
+        value = numeric_limits<int>::min();
+        column = rand() % validLoctions.size();
+        for (int col : validLoctions) {
+            row = getNextRow(board, col);
+            vector<vector<int>> tempboard = board;
+            insertPiece(tempboard, row, col, AI_PIECE);
+            newScore = minimax(tempboard, depth - 1, alpha, beta, false)[1];
+            if (newScore > value) {
+                value = newScore;
+                column = col;
+            }
+            alpha = max(alpha, value);
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        tup = {column, value};
+        return tup;
+    } else { // minimizingPlayer
+        int row, column, value, newScore;
+        vector<int> tup;
+        value = numeric_limits<int>::max();
+        column = rand() % validLoctions.size();
+        for (int col : validLoctions) {
+            row = getNextRow(board, col);
+            vector<vector<int>> tempboard = board;
+            insertPiece(tempboard, row, col, PLAYER1_PIECE);
+            newScore = minimax(tempboard, depth - 1, alpha, beta, true)[1];
+            if (newScore < value) {
+                value = newScore;
+                column = col;
+            }
+            beta = min(beta, value);
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        tup = {column, value};
+        return tup;
+    }
+}
+
 int main() {
 beginGame:
     cout << "Welcome! Choose your Mode of Play:\nPress 1 for 1 Player\nPress 2 for 2 Player" << endl;
+    srand(time(0));
     int numPlayers;
     cin >> numPlayers;
     vector<vector<int>> board = createBoard();
     bool gameOver = false;
     if (numPlayers == 1) {
-        srand(time(0));
-        int turn = rand() % 2; // Setting Random turn between 0 and 1
         int alpha = numeric_limits<int>::min();
         int beta = numeric_limits<int>::max();
         int column = 0;
         int minimax_score = 0;
+        int level;
+        chooseLevel:
+        cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n";
+        cin >> level;
+        if (level < 1 or level > 4) {
+            cout << "Please choose a valid level" << endl;
+            goto chooseLevel;
+        }
+        int turn = rand() % 2; // Setting Random turn between 0 and 1
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
         printBoard(board);
         while (!gameOver) {
@@ -346,11 +343,11 @@ beginGame:
 
                 cout << "AI Thinking..." << endl;
                 Sleep(1000);
-                int col = minimax(board, 2, alpha, beta, true)[0];
-                minimax_score = minimax(board, 2, alpha, beta, true)[1];
-                if (isValidLocation(board, column)) {
-                    int row = getNextRow(board, column);
-                    insertPiece(board, row, column, AI_PIECE);
+                int col = minimax(board, level, alpha, beta, true)[0];
+                minimax_score = minimax(board, level, alpha, beta, true)[1];
+                if (isValidLocation(board, col)) {
+                    int row = getNextRow(board, col);
+                    insertPiece(board, row, col, AI_PIECE);
                     if (isGameOver(board, AI_PIECE)) {
                         gameOver = true;
                         cout << "Sorry, You Lose, Better Luck Next Time" << endl;
