@@ -2,10 +2,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static int ROW_COUNT = 6, COLUMN_COUNT = 7, PLAYER1 = 0, PLAYER2 = 1, AI = 1, PLAYER1_PIECE = 1, PLAYER2_PIECE = 2, AI_PIECE = 2, EMPTY = 0, WINDOW_LENGTH = 4;
+static int ROW_COUNT = 6, COLUMN_COUNT = 7, PLAYER1 = 0, PLAYER2 = 1, AI = 1, PLAYER1_PIECE = 1, PLAYER2_PIECE = 2, AI_PIECE = 2, EMPTY = 0, WINDOW_LENGTH = 4, DEFAULT = 15, RED = 12, YELLOW = 14, CYAN = 11, GREEN = 10;
 
 vector<vector<int>> createBoard() {
-    vector<vector<int>> board = vector<vector<int>>(ROW_COUNT, vector<int>(COLUMN_COUNT, 0));
+    vector<vector<int>> board = vector<vector<int>>(ROW_COUNT, vector<int>(COLUMN_COUNT, EMPTY));
     return board;
 }
 
@@ -29,31 +29,39 @@ bool isValidColumn(int column) {
     return false;
 }
 
+void printInColour(string text, int colour) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, colour);
+    cout << text;
+    SetConsoleTextAttribute(hConsole, DEFAULT);
+}
+
 void printBoard(vector<vector<int>> board) {
-    cout << " 1 2 3 4 5 6 7 " << endl;
+    printInColour(" 1 2 3 4 5 6 7 \n", GREEN);
     for (int row = ROW_COUNT - 1; row >= 0; row--) {
-        cout << "|";
+        printInColour("|", CYAN);
         for (int col = 0; col < COLUMN_COUNT; col++) {
             if (col != COLUMN_COUNT - 1) {
                 if (board[row][col] == 1) {
-                    cout << "X|";
+                    printInColour("X", RED);
+                    printInColour("|", CYAN);
                 } else if (board[row][col] == 2) {
-                    cout << "O|";
+                    printInColour("O", YELLOW);
+                    printInColour("|", CYAN);
                 } else if (board[row][col] == 0) {
-                    cout << " |";
+                    printInColour(" |", CYAN);
                 }
             } else {
                 if (board[row][col] == 1) {
-                    cout << "X";
-                } else if (board[row][col] == 2) {
-                    cout << "O";
+                    printInColour("X", RED);
+                } else if (board[row][col] == 2) { 
+                    printInColour("O", YELLOW);
                 } else if (board[row][col] == 0) {
                     cout << " ";
                 }
-                // cout << board[row][col];
             }
         }
-        cout << "|" << endl;
+        printInColour("|\n", CYAN);
     }
 }
 
@@ -109,6 +117,20 @@ bool isGameOver(vector<vector<int>> board, int piece) {
             }
         }
     }
+
+    // Checking for draw
+    //  int countEmpty = 0;
+    //  for (int col = 0; col < COLUMN_COUNT; col++) {
+    //      for (int row = 0; row < ROW_COUNT; row++) {
+    //          if (board[row][col] == EMPTY) {
+    //              countEmpty++;
+    //          }
+    //      }
+    //  }
+    //  if (countEmpty == 0) {
+    //      cout << "Game Drawn" << endl;
+    //      return true;
+    //  }
     return false;
 }
 
@@ -320,9 +342,9 @@ beginGame:
         int minimax_score = 0;
         int level;
         while (true) {
-            cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n";
+            cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n5: Legendary\n";
             cin >> level;
-            if (level < 1 or level > 4) {
+            if (level < 1 or level > 5) {
                 cout << "Please choose a valid level" << endl;
             } else {
                 break;
@@ -330,13 +352,15 @@ beginGame:
         }
         int turn = rand() % 2; // Setting Random turn between 0 and 1
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
-        printBoard(board);
         while (!gameOver) {
+            system("cls");
+            printBoard(board);
+            int chosenColumn;
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
                 cin >> column;
                 column--;
-                if (column == -1) {
+                if (column == -1) { // Exit condition
                     gameOver = true;
                     continue;
                 }
@@ -366,10 +390,12 @@ beginGame:
                 cout << ".";
                 Sleep(250);
                 cout << endl;
+                Sleep(125);
                 int col = minimax(board, level, alpha, beta, true)[0];
                 minimax_score = minimax(board, level, alpha, beta, true)[1];
                 if (isValidLocation(board, col)) {
                     int row = getNextRow(board, col);
+                    chosenColumn = col + 1;
                     insertPiece(board, row, col, AI_PIECE);
                     if (isGameOver(board, AI_PIECE)) {
                         gameOver = true;
@@ -379,14 +405,16 @@ beginGame:
             }
             turn++;
             turn %= 2;
+            cout << "AI (level " << level << ") chose column: " << chosenColumn << endl;
             printBoard(board);
         }
     } else if (numPlayers == 2) {
         int turn = 0;
         int column = 0;
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
-        printBoard(board);
         while (!gameOver) {
+            system("cls");
+            printBoard(board);
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
                 cin >> column;
@@ -404,6 +432,8 @@ beginGame:
                     insertPiece(board, row, column, PLAYER1_PIECE);
                     if (isGameOver(board, PLAYER1_PIECE)) {
                         gameOver = true;
+                        system("cls");
+                        printBoard(board);
                         cout << "Player 1 wins! Congratulations!" << endl;
                     }
                 } else {
@@ -427,6 +457,8 @@ beginGame:
                     insertPiece(board, row, column, PLAYER2_PIECE);
                     if (isGameOver(board, PLAYER2_PIECE)) {
                         gameOver = true;
+                        system("cls");
+                        printBoard(board);
                         cout << "Player 2 wins! Congratulations!" << endl;
                     }
                 } else {
@@ -436,7 +468,6 @@ beginGame:
             }
             turn++;
             turn %= 2;
-            printBoard(board);
         }
     } else {
         cout << "Please enter valid number of players!" << endl;
