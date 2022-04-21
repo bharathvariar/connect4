@@ -54,7 +54,7 @@ void printBoard(vector<vector<int>> board) {
             } else {
                 if (board[row][col] == 1) {
                     printInColour("X", RED);
-                } else if (board[row][col] == 2) { 
+                } else if (board[row][col] == 2) {
                     printInColour("O", YELLOW);
                 } else if (board[row][col] == 0) {
                     cout << " ";
@@ -340,6 +340,7 @@ beginGame:
         int beta = numeric_limits<int>::max();
         int column = 0;
         int minimax_score = 0;
+        int numTurns = 0;
         int level;
         while (true) {
             cout << "Enter level of difficulty:\n1: Beginner\n2: Amateur\n3: Professional\n4: World Class\n5: Legendary\n";
@@ -352,9 +353,8 @@ beginGame:
         }
         int turn = rand() % 2; // Setting Random turn between 0 and 1
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
+        printBoard(board);
         while (!gameOver) {
-            system("cls");
-            printBoard(board);
             int chosenColumn;
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
@@ -396,6 +396,9 @@ beginGame:
                 if (isValidLocation(board, col)) {
                     int row = getNextRow(board, col);
                     chosenColumn = col + 1;
+                    if (numTurns >= 1) {
+                        cout << "AI (level " << level << ") chose column: " << chosenColumn << endl;
+                    }
                     insertPiece(board, row, col, AI_PIECE);
                     if (isGameOver(board, AI_PIECE)) {
                         gameOver = true;
@@ -405,16 +408,20 @@ beginGame:
             }
             turn++;
             turn %= 2;
-            cout << "AI (level " << level << ") chose column: " << chosenColumn << endl;
+            numTurns++;
+            if (numTurns == 42) {
+                cout << "Game Drawn" << endl;
+                gameOver = true;
+            }
             printBoard(board);
         }
     } else if (numPlayers == 2) {
         int turn = 0;
         int column = 0;
+        int numTurns = 0;
         cout << "The Game begins...Enjoy!\nPress 0 to exit midgame" << endl;
+        printBoard(board);
         while (!gameOver) {
-            system("cls");
-            printBoard(board);
             if (turn == PLAYER1) {
                 cout << "Player 1, please choose a column (1-7): ";
                 cin >> column;
@@ -432,8 +439,6 @@ beginGame:
                     insertPiece(board, row, column, PLAYER1_PIECE);
                     if (isGameOver(board, PLAYER1_PIECE)) {
                         gameOver = true;
-                        system("cls");
-                        printBoard(board);
                         cout << "Player 1 wins! Congratulations!" << endl;
                     }
                 } else {
@@ -457,8 +462,6 @@ beginGame:
                     insertPiece(board, row, column, PLAYER2_PIECE);
                     if (isGameOver(board, PLAYER2_PIECE)) {
                         gameOver = true;
-                        system("cls");
-                        printBoard(board);
                         cout << "Player 2 wins! Congratulations!" << endl;
                     }
                 } else {
@@ -468,6 +471,12 @@ beginGame:
             }
             turn++;
             turn %= 2;
+            numTurns++;
+            if (numTurns == 42) {
+                cout << "Game Drawn" << endl;
+                gameOver = true;
+            }
+            printBoard(board);
         }
     } else {
         cout << "Please enter valid number of players!" << endl;
