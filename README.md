@@ -1,5 +1,7 @@
 # Connect4 
 
+Project done for the course CS F211: Data Structures and Algorithms
+
 ## Description
 Solving Connect 4 can be seen as finding the best path in a decision tree where each node is a Position. At each node the player has to choose one move leading to one of the possible next positions. When it is your turn, you want to choose the best possible move that will maximize your score. But next turn your opponent will try himself to maximize his score, thus minimizing yours.
 This leads to a recursive algorithm to score a position. At each step:
