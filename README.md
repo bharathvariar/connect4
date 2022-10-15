@@ -9,3 +9,7 @@ This leads to a recursive algorithm to score a position. At each step:
   * When it’s your opponent’s turn, the score is the minimum score of next possible positions (your opponent will play the move that minimizes your score, and maximizes his)
 
 We will primarily be using trees and 2D vectors in our implementation of the AI.
+
+## Collaborators
+[Bharath Variar](https://github.com/bharathvariar) \
+[Adit Danewa](https://github.com/ad0711)
